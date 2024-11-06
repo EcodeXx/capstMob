@@ -204,68 +204,140 @@
             $('#login-form').toggle();
         }
 
-        function register() {
-            const firstName = $('#register-first-name').val();
-            const middleName = $('#register-middle-name').val();
-            const lastName = $('#register-last-name').val();
-            const email = $('#register-email').val();
-            const password = $('#register-password').val();
-            const address = $('#register-address').val();
-            const contact = $('#register-contact').val();
-            const birthday = $('#register-birthday').val();
-            const gender = $('#register-gender').val();
-            const occupation = $('#register-occupation').val();
-            const civilStatus = $('#register-civil-status').val();
-            const loanAmount = $('#register-loan-amount').val();
+       function register() {
+    const firstName = $('#register-first-name').val();
+    const middleName = $('#register-middle-name').val();
+    const lastName = $('#register-last-name').val();
+    const email = $('#register-email').val();
+    const password = $('#register-password').val();
+    const address = $('#register-address').val();
+    const contact = $('#register-contact').val();
+    const birthday = $('#register-birthday').val();
+    const gender = $('#register-gender').val();
+    const occupation = $('#register-occupation').val();
+    const civilStatus = $('#register-civil-status').val();
+    const loanAmount = $('#register-loan-amount').val();
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .then(userCredential => {
-                    const user = userCredential.user;
+    auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            const user = userCredential.user;
+            const userId = user.uid;
 
-                    // Send verification email
-                    user.sendEmailVerification()
-                        .then(() => {
-                            // Registration successful and email sent
-                            db.ref('users/' + user.uid).set({
-                                firstName,
-                                middleName,
-                                lastName,
-                                email,
-                                address,
-                                contact,
-                                birthday,
-                                gender,
-                                occupation,
-                                civilStatus,
-                                loanAmount
-                            });
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Registration successful!',
-                                text: 'A verification email has been sent to your email address. Please verify to login.',
-                                confirmButtonText: 'OK'
-                            });
-                            $('#register-form').hide();
-                            $('#login-form').show();
-                        })
-                        .catch(error => {
-                            // Error sending verification email
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: error.message
-                            });
-                        });
+            // Send the verification email
+            user.sendEmailVerification()
+                .then(() => {
+                    console.log('Verification email sent to:', email);
                 })
                 .catch(error => {
-                    // Error creating user
+                    console.error('Error sending verification email:', error.message);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Registration failed',
+                        title: 'Email Verification Failed',
+                        text: 'Please check your email address and try registering again.'
+                    });
+                });
+
+            // Generate QR Code Data
+            const qrData = JSON.stringify({
+                firstName,
+                lastName,
+                email,
+                userId
+            });
+
+            // Generate QR Code as Data URL
+            $('#qr').empty().qrcode({
+                width: 128,
+                height: 128,
+                text: qrData
+            });
+            const qrCanvas = $('#qr canvas')[0];
+            
+            // Check if the QR code canvas was created correctly
+            if (!qrCanvas) {
+                console.error("QR Code canvas not generated");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'QR Code generation failed',
+                    text: 'Unable to create QR code. Please try again.'
+                });
+                return;
+            }
+
+            const qrDataUrl = qrCanvas.toDataURL('image/png');
+
+            // Upload QR Code Image to Firebase Storage
+            const storageRef = firebase.storage().ref('img/' + userId + '/qrcode.png');
+            storageRef.putString(qrDataUrl, 'data_url')
+                .then(snapshot => {
+                    return snapshot.ref.getDownloadURL(); // Get QR Code URL
+                })
+                .then(downloadURL => {
+                    // Save User Data to Realtime Database
+                    db.ref('users/' + userId).set({
+                        firstName,
+                        middleName,
+                        lastName,
+                        email,
+                        address,
+                        contact,
+                        birthday,
+                        gender,
+                        occupation,
+                        civilStatus,
+                        loanAmount,
+                        qrCodeURL: downloadURL // Store QR code URL
+                    });
+
+                    // Show success message with resend button
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Registration successful!',
+                        text: 'A verification email has been sent to your email address. Please verify to log in.',
+                        showCancelButton: true,
+                        cancelButtonText: 'OK',
+                        confirmButtonText: 'Resend Verification Email',
+                        preConfirm: () => {
+                            return user.sendEmailVerification().then(() => {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Verification Email Resent!',
+                                    text: 'A new verification email has been sent to your email address.'
+                                });
+                            }).catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Resend Failed',
+                                    text: 'There was an error while resending the verification email.'
+                                });
+                            });
+                        }
+                    });
+
+                    // Toggle forms
+                    $('#register-form').hide();
+                    $('#login-form').show();
+                })
+                .catch(error => {
+                    console.error("Error uploading QR code image:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
                         text: error.message
                     });
                 });
-        }
+        })
+        .catch(error => {
+            console.error("Registration error:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Registration failed',
+                text: error.message
+            });
+        });
+}
+
+
 
         function login() {
     const email = $('#login-email').val();
