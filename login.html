@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Login</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+  <!-- jQuery Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <!-- SweetAlert Library -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+    /* Green theme background */
+    body {
+      background: linear-gradient(to bottom, #388e3c 60%, #81c784 40%); /* Green gradient */
+      color: white;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Login form styling */
+    #login-form {
+      
+      border-radius: 10px;
+      padding: 40px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 1;
+    }
+
+    #login-form h2 {
+      color: #fff;
+      font-weight: bold;
+    }
+
+    #login-form h3 {
+      color: #388e3c;
+    }
+
+    .form-control {
+      border-radius: 5px;
+      box-shadow: none;
+      border: 1px solid #388e3c;
+    }
+
+    .btn-primary {
+      background-color: #388e3c;
+      border-color: #388e3c;
+    }
+
+    .btn-primary:hover {
+      background-color: #2e7d32;
+      border-color: #2e7d32;
+    }
+
+    .btn-secondary {
+      background-color: #81c784;
+      border-color: #81c784;
+    }
+
+    .btn-secondary:hover {
+      background-color: #66bb6a;
+      border-color: #66bb6a;
+    }
+
+    .btn-link {
+      color: #388e3c;
+    }
+
+    .btn-link:hover {
+      color: #2e7d32;
+    }
+    label {
+      color: #2e7d32;
+    }
+
+    /* Offline connection message */
+    #no-connection {
+      display: none;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+      background-color: #c62828; /* Red color for offline message */
+      padding: 10px;
+      border-radius: 5px;
+      position: absolute;
+      top: 20px;
+      width: 100%;
+    }
+
+    /* Styling for buttons */
+    .btn-block {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    </style>
+<body>
+  <p id="no-connection">No Internet Connection</p>
+  <!-- Login Form -->
+  <div id="login-form" class="container mt-5">
+    <h2>CoopTrak</h2>
+    <form class="p-4 bg-white rounded shadow" id="loginForm">
+      <h3>Login</h3>
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" class="form-control" required>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" onclick="login()">Login</button>
+      <button type="button" class="btn btn-secondary btn-block" onclick="resetForm('loginForm')">Reset</button>
+<button type="button" class="btn btn-link btn-block" onclick="window.location.href='register.html'">Don't have an account? Register</button>
+
+    </form>
+  </div>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCdzQP6n7gw8T82h2Qg-cLfnLbEqJ4WONg",
+      authDomain: "caps-62ee2.firebaseapp.com",
+      databaseURL: "https://caps-62ee2-default-rtdb.firebaseio.com",
+      projectId: "caps-62ee2",
+      storageBucket: "caps-62ee2.appspot.com",
+      messagingSenderId: "407248916382",
+      appId: "1:407248916382:web:104a66db2e652789e2d08f",
+      measurementId: "G-2Y9GYDHFVM"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Login function
+    function login() {
+      const email = $('#login-email').val();
+      const password = $('#login-password').val();
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          const user = userCredential.user;
+
+          // Check if the email is verified
+          if (user.emailVerified) {
+            // Redirect to loading.html on successful login
+            window.location.href = 'loading.html';
+          } else {
+            // Email is not verified
+            Swal.fire({
+              icon: 'warning',
+              title: 'Email not verified',
+              text: 'Please verify your email address to log in.',
+              confirmButtonText: 'OK'
+            });
+            auth.signOut(); // Optionally, sign out the user to clear the session
+          }
+        })
+        .catch(error => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Login failed',
+            text: error.message
+          });
+        });
+    }
+
+    // Function to reset the form fields
+    function resetForm(formId) {
+      $('#' + formId)[0].reset();
+    }
+
+    // Function to check connection status
+    function updateConnectionStatus() {
+        const noConnectionMessage = document.getElementById('no-connection');
+        
+        if (navigator.onLine) {
+            // Hide the message when online
+            noConnectionMessage.style.display = 'none';
+        } else {
+            // Show the message when offline
+            noConnectionMessage.style.display = 'block';
+        }
+    }
+
+    // Check connection status on page load
+    updateConnectionStatus();
+
+    // Listen for online and offline events
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+  </script>
+</body>
+</html>

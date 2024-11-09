@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoopTrak Loading Screen</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Fullscreen loading container with green background */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #d4edda; /* Light green */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    /* CoopTrak text style */
+    #loading-text {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #28a745; /* Bootstrap's success green color */
+      margin-bottom: 20px;
+    }
+
+    /* Adjust spinner size */
+    .spinner-border {
+      width: 4rem;
+      height: 4rem;
+    }
+
+    /* Main content style when visible */
+    #content {
+      display: none;
+      visibility: hidden;
+    }
+
+    /* Adding animation to make content fade in smoothly */
+    .fade-in {
+      animation: fadeIn 2s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div id="loading-text">CoopTrak</div>
+    <div class="spinner-border text-success" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="content" class="fade-in">
+    <!-- Your main content goes here -->
+    <h1>Welcome to CoopTrak!</h1>
+  </div>
+
+  <!-- Bootstrap JS and dependencies (Optional for responsive components) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Delay hiding the loading screen and then redirect
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loading-screen').style.display = 'none';
+        const content = document.getElementById('content');
+        content.style.display = 'block';
+        content.classList.add('fade-in'); // Add fade-in animation
+        window.location.href = 'index.html'; // Redirect to index.html after the loading
+      }, 5000); // 5000 milliseconds = 5 seconds
+    });
+  </script>
+</body>
+</html>

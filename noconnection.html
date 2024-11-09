@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internet Connection Status</title>
+    <style>
+        #no-connection {
+            display: none;
+            color: red;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Check Internet Connection Status</h2>
+    <p id="no-connection">No Internet Connection</p>
+</div>
+
+<script>
+    // Function to check connection status
+    function updateConnectionStatus() {
+        const noConnectionMessage = document.getElementById('no-connection');
+        
+        if (navigator.onLine) {
+            // Hide the message when online
+            noConnectionMessage.style.display = 'none';
+        } else {
+            // Show the message when offline
+            noConnectionMessage.style.display = 'block';
+        }
+    }
+
+    // Check connection status on page load
+    updateConnectionStatus();
+
+    // Listen for online and offline events
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+</script>
+
+</body>
+</html>
