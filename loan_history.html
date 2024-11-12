@@ -31,20 +31,21 @@ h4 {
     <i class="fas fa-arrow-left"></i>
 </button>
 
-<!-- Payment History Table -->
+<!-- Loan History Table -->
 <div class="container mt-4">
-    <div id="payment-history" style="margin-top: 20px;">
-        <h4>Payment History</h4>
+    <div id="loan-history" style="margin-top: 20px;">
+        <h4>Loan History</h4>
         <table class="table table-bordered">
             <thead class="thead-light">
                 <tr>
-                    <th>No.</th>
+                    <th>no.</th>
                     <th>Date</th>
                     <th>Payment Amount</th>
+                    <th>Previous Loan Amount</th>
                 </tr>
             </thead>
-            <tbody id="payment-history-body">
-                <!-- Payment records will be dynamically inserted here -->
+            <tbody id="loan-history-body">
+                <!-- Loan records will be dynamically inserted here -->
             </tbody>
         </table>
     </div>
@@ -76,51 +77,46 @@ h4 {
         if (!user) {
             window.location.href = 'login.html';
         } else {
-            fetchPaymentHistory(user.uid);
+            fetchLoanHistory(user.uid);
         }
     });
 
-    // Function to fetch and display the payment history
-    function fetchPaymentHistory(userId) {
-        const paymentHistoryRef = db.ref(`users/${userId}/payments`);
+    // Function to fetch and display the loan history
+    function fetchLoanHistory(userId) {
+        const loanHistoryRef = db.ref(`users/${userId}/loanHistory`);
 
-        paymentHistoryRef.once('value', (snapshot) => {
-            const paymentHistoryBody = document.getElementById('payment-history-body');
-            paymentHistoryBody.innerHTML = ''; // Clear existing rows
+        loanHistoryRef.once('value', (snapshot) => {
+            const loanHistoryBody = document.getElementById('loan-history-body');
+            loanHistoryBody.innerHTML = ''; // Clear existing rows
 
             if (snapshot.exists()) {
-                const paymentsArray = snapshot.val();
-                let index = 1;
+                const loansArray = snapshot.val();
 
-                for (const paymentKey in paymentsArray) {
-                    if (paymentsArray.hasOwnProperty(paymentKey)) {
-                        const payment = paymentsArray[paymentKey];
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${index}</td>
-                            <td>${payment.date}</td>
-                            <td>₱ ${payment.amount}</td>
-                        `;
-                        paymentHistoryBody.appendChild(row);
-                        index++;
-                    }
-                }
+                loansArray.forEach((loan, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${loan.date}</td>
+                        <td>${loan.paymentAmount}</td>
+                        <td>${loan.previousLoanAmount}</td>
+                    `;
+                    loanHistoryBody.appendChild(row);
+                });
             } else {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="3" class="text-center">No payment history available.</td>`;
-                paymentHistoryBody.appendChild(row);
+                row.innerHTML = `<td colspan="4" class="text-center">No loan history available.</td>`;
+                loanHistoryBody.appendChild(row);
             }
         }).catch(error => {
-            console.error("Error fetching payment history: ", error);
+            console.error("Error fetching loan history: ", error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Failed to fetch payment history. Please try again later.'
+                text: 'Failed to fetch loan history. Please try again later.'
             });
         });
     }
 </script>
-
 
 <!-- Bootstrap JS (Optional) -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
