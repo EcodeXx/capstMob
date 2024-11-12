@@ -6,10 +6,10 @@
   <title>CoopTrak Loading Screen</title>
   <!-- Bootstrap CSS -->
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-      <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
   <style>
     /* Fullscreen loading container with green background */
     #loading-screen {
@@ -82,42 +82,45 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyCdzQP6n7gw8T82h2Qg-cLfnLbEqJ4WONg",
-        authDomain: "caps-62ee2.firebaseapp.com",
-        databaseURL: "https://caps-62ee2-default-rtdb.firebaseio.com",
-        projectId: "caps-62ee2",
-        storageBucket: "caps-62ee2.appspot.com",
-        messagingSenderId: "407248916382",
-        appId: "1:407248916382:web:104a66db2e652789e2d08f",
-        measurementId: "G-2Y9GYDHFVM"
-    };
+  // Firebase configuration
+  const firebaseConfig = {
+      apiKey: "AIzaSyCdzQP6n7gw8T82h2Qg-cLfnLbEqJ4WONg",
+      authDomain: "caps-62ee2.firebaseapp.com",
+      databaseURL: "https://caps-62ee2-default-rtdb.firebaseio.com",
+      projectId: "caps-62ee2",
+      storageBucket: "caps-62ee2.appspot.com",
+      messagingSenderId: "407248916382",
+      appId: "1:407248916382:web:104a66db2e652789e2d08f",
+      measurementId: "G-2Y9GYDHFVM"
+  };
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
 
-    // Check if user is logged in and load their data
-    firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-            loadUserData(user.uid);
-        } else {
-            window.location.href = "login.html"; 
-        }
-    });
-  
-    // Delay hiding the loading screen and then redirect
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        document.getElementById('loading-screen').style.display = 'none';
-        const content = document.getElementById('content');
-        content.style.display = 'block';
-        content.classList.add('fade-in'); // Add fade-in animation
-        window.location.href = 'index.html'; // Redirect to index.html after the loading
-      }, 9000);
-    });
-  </script>
+  // Show content and hide loading screen based on authentication
+  function showContent() {
+    document.getElementById('loading-screen').style.display = 'none';
+    const content = document.getElementById('content');
+    content.style.display = 'block';
+    content.classList.add('fade-in');
+  }
+
+  // Check if user is logged in and load their data
+  firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+          setTimeout(() => {
+              showContent();
+              window.location.href = 'index.html'; // Redirect to index.html
+          }, 9000); // Delay for loading screen
+      } else {
+          setTimeout(() => {
+              showContent();
+              window.location.href = "login.html"; // Redirect to login if not authenticated
+          }, 5000); // Delay for loading screen
+      }
+  });
+</script>
 </body>
 </html>
