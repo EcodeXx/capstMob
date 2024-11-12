@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload and Scan QR Code</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script> <!-- QR Code Scanner Library -->
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script> <!-- Firebase Realtime Database -->
+    <!-- Bootstrap CSS for styling -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        #canvas {
+            display: none;
+        }
+        .form-group {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Upload and Scan QR Code</h2>
+
+    <!-- Upload QR Code Image -->
+    <input type="file" id="upload" accept="image/*" class="form-control-file" />
+
+    <br><br>
+
+    <!-- Display Canvas (used for scanning the image) -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Form to display QR Code Data and manage loan payment -->
+    <form>
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text" class="form-control" id="firstName" disabled />
+        </div>
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" class="form-control" id="lastName" disabled />
+        </div>
+        <div class="form-group">
+            <label for="loanAmount">Loan Amount</label>
+            <input type="text" class="form-control" id="loanAmount" disabled />
+        </div>
+        <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" class="form-control" id="address" disabled />
+        </div>
+        <div class="form-group">
+            <label for="birthday">Birthday</label>
+            <input type="text" class="form-control" id="birthday" disabled />
+        </div>
+        <div class="form-group">
+            <label for="contact">Contact</label>
+            <input type="text" class="form-control" id="contact" disabled />
+        </div>
+
+        <!-- Input to deduct loan payment -->
+        <div class="form-group">
+            <label for="deductAmount">Amount to Deduct</label>
+            <input type="number" class="form-control" id="deductAmount" />
+        </div>
+        
+        <!-- Input for the payment date -->
+        <div class="form-group">
+            <label for="paymentDate">Payment Date</label>
+            <input type="date" class="form-control" id="paymentDate" />
+        </div>
+
+        <!-- Button to apply the payment -->
+        <button type="button" class="btn btn-primary" id="applyPayment">Apply Payment</button>
+    </form>
+</div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCdzQP6n7gw8T82h2Qg-cLfnLbEqJ4WONg",
+        authDomain: "caps-62ee2.firebaseapp.com",
+        databaseURL: "https://caps-62ee2-default-rtdb.firebaseio.com",
+        projectId: "caps-62ee2",
+        storageBucket: "caps-62ee2.appspot.com",
+        messagingSenderId: "407248916382",
+        appId: "1:407248916382:web:104a66db2e652789e2d08f",
+        measurementId: "G-2Y9GYDHFVM"
+    };
+
+    // Initialize Firebase app
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database(app);
+
+    // Function to handle QR code scan
+    function scanQRCode(image) {
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Create an image object
+        const img = new Image();
+        img.onload = function() {
+            // Set canvas size to match the image
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            // Get image data from canvas
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+            // Check if a QR code was found
+            if (code) {
+                const qrData = JSON.parse(code.data); // Parse the JSON data from the QR code
+
+                // Fill the input fields with the scanned QR code data
+                document.getElementById('firstName').value = qrData.firstName || '';
+                document.getElementById('lastName').value = qrData.lastName || '';
+                document.getElementById('loanAmount').value = qrData.loanAmount || '';
+                document.getElementById('address').value = qrData.address || '';
+                document.getElementById('birthday').value = qrData.birthday || '';
+                document.getElementById('contact').value = qrData.contact || '';
+            } else {
+                alert('No QR code found. Please try again.');
+            }
+        };
+
+        // Handle errors if image fails to load
+        img.onerror = function() {
+            alert('Error loading image. Please try a different image.');
+        };
+
+        // Load the uploaded image to the img object
+        img.src = URL.createObjectURL(image);
+    }
+
+    // Handle file upload and scanning
+    document.getElementById('upload').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            scanQRCode(file);
+        } else {
+            alert('Please upload an image file.');
+        }
+    });
+
+    // Handle payment and update loan balance
+    document.getElementById('applyPayment').addEventListener('click', function() {
+        const loanAmountField = document.getElementById('loanAmount');
+        const deductAmount = parseFloat(document.getElementById('deductAmount').value);
+        const paymentDate = document.getElementById('paymentDate').value;
+
+        if (!deductAmount || deductAmount <= 0) {
+            alert('Please enter a valid amount to deduct.');
+            return;
+        }
+
+        if (!paymentDate) {
+            alert('Please select a payment date.');
+            return;
+        }
+
+        // Get the current loan balance
+        let loanAmount = parseFloat(loanAmountField.value);
+
+        // Deduct the payment from the loan amount
+        if (loanAmount >= deductAmount) {
+            loanAmount -= deductAmount;
+
+            // Update the loan amount field
+            loanAmountField.value = loanAmount.toFixed(2);
+
+            // Log the payment details (For demonstration purposes, we can print the data)
+            console.log('Payment Applied: ', {
+                deductedAmount: deductAmount,
+                newLoanAmount: loanAmount,
+                paymentDate: paymentDate
+            });
+
+            // Save payment details to Firebase
+            const paymentData = {
+                deductedAmount: deductAmount,
+                newLoanAmount: loanAmount,
+                paymentDate: paymentDate
+            };
+
+            // Save the payment data to the Firebase Realtime Database
+            const userId = document.getElementById('firstName').value + document.getElementById('lastName').value; // Assuming the user's name can be a unique identifier
+            firebase.database().ref('payments/' + userId).push(paymentData)
+                .then(() => {
+                    console.log('Payment data saved to Firebase');
+                    alert('Payment applied and saved to Firebase!');
+                })
+                .catch(error => {
+                    console.error('Error saving payment data:', error);
+                    alert('Error saving payment data.');
+                });
+
+            // Optionally, clear the fields after payment
+            document.getElementById('deductAmount').value = '';
+            document.getElementById('paymentDate').value = '';
+        } else {
+            alert('Deduction amount exceeds loan balance.');
+        }
+    });
+</script>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

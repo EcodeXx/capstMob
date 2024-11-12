@@ -17,12 +17,11 @@
     <!-- SweetAlert Library -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* Styling for QR Code container */
         .qrcode-container {
             margin-top: 40px;
             padding: 30px;
-            background-color: #e0f7e4; /* Light green background */
-            border: 2px solid #28a745; /* Green border */
+            background-color: #e0f7e4;
+            border: 2px solid #28a745;
             border-radius: 15px;
             text-align: center;
             max-width: 400px;
@@ -36,7 +35,6 @@
         .qrcode-container img {
             width: 250px;
             height: 250px;
-            
         }
         .bottom-nav {
             position: fixed;
@@ -93,41 +91,36 @@
     // Check if user is logged in and load QR code
     auth.onAuthStateChanged(function(user) {
         if (user) {
+            console.log("User is authenticated. UID:", user.uid);
             loadQrCode(user.uid);
         } else {
+            console.warn("User is not authenticated. Redirecting to login.");
             window.location.href = "login.html";
         }
     });
 
     function loadQrCode(userId) {
-        const qrCodeUrl = localStorage.getItem('qrCodeURL');
-        
-        if (qrCodeUrl) {
-            displayQrCode(qrCodeUrl);
-        } else {
-            // Fallback: Fetch from Firebase if not found in localStorage
-            db.ref('users/' + userId).once('value').then(snapshot => {
-                const userData = snapshot.val();
+        // Construct the path to the QR code file in the user's folder
+        const qrCodePath = `img/${userId}/qrcode.png`;
+        const qrCodeRef = storage.ref(qrCodePath);
 
-                if (userData && userData.qrCodePath) {
-                    const qrCodePath = `img/${userId}/qrcode.png`;
-                    const qrCodeRef = storage.ref(qrCodePath);
-                    qrCodeRef.getDownloadURL()
-                        .then(url => {
-                            localStorage.setItem('qrCodeURL', url);  // Cache in localStorage
-                            displayQrCode(url);
-                        })
-                        .catch(error => showError('QR Code fetch failed', 'Unable to retrieve QR code.'));
-                } else {
-                    showError('QR Code Not Found', 'No QR code found for this user. Please generate one.');
-                }
-            }).catch(error => showError('Error loading data', error.message));
-        }
+        // Attempt to get the download URL for the QR code
+        qrCodeRef.getDownloadURL()
+            .then(url => {
+                console.log("QR code URL fetched from Firebase Storage:", url);
+                displayQrCode(url);  // Display the QR code if the URL is successfully fetched
+                localStorage.setItem('qrCodeURL', url);  // Cache URL in localStorage
+            })
+            .catch(error => {
+                console.error("Error fetching QR code from Firebase Storage:", error);
+                showError('QR Code fetch failed', 'Unable to retrieve QR code. Please ensure it is uploaded.');
+            });
     }
 
     function displayQrCode(url) {
         document.getElementById('qrImage').src = url;
         document.getElementById('qrcode').style.display = 'block';
+        console.log("QR code displayed successfully.");
     }
 
     function showError(title, message) {
@@ -159,7 +152,10 @@
                             window.location.href = 'login.html';
                         });
                     })
-                    .catch(error => showError('Logout failed', error.message));
+                    .catch(error => {
+                        console.error("Error during logout:", error);
+                        showError('Logout failed', error.message);
+                    });
             } else {
                 Swal.fire({
                     icon: 'info',
