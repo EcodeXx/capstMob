@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Home</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -15,14 +15,26 @@
     <!-- SweetAlert Library -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        .loan-balance {
+        .balance-display {
             background-color: #28a745;
             color: white;
             padding: 20px;
             border-radius: 10px;
             font-size: 1.5rem;
             text-align: center;
-            margin-top: 50px;
+            margin-top: 20px;
+            position: relative;
+        }
+        .toggle-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        .toggle-buttons button {
+            width: 150px;
+            margin: 0 5px;
+           
         }
         .icon-grid {
             display: flex;
@@ -74,10 +86,15 @@
 <body>
 
 <div class="container">
-    <!-- Loan Balance Display -->
-    <div id="loan-balance" class="loan-balance mb-4">
-        <h4>Loan Balance</h4>
-        <p id="loan-amount-display">Loading...</p> <!-- Default text for loading -->
+    <!-- Balance Display with Toggle Buttons -->
+    <div class="toggle-buttons">
+            <button id="loan-btn" class="btn btn-light" onclick="showLoanBalance()">Loan</button>
+            <button id="savings-btn" class="btn btn-light" onclick="showSavingsBalance()">Savings</button>
+        </div>
+    <div id="balance-display" class="balance-display mb-4">
+        
+        <h4 id="balance-type">Loan Balance</h4>
+        <p id="balance-amount-display">Loading...</p> <!-- Default text for loading -->
     </div>
 
     <!-- Icon Grid Section -->
@@ -88,7 +105,7 @@
             </a>
         </div>
         <div class="icon-box">
-            <a href="#">
+            <a href="savings.html">
                 <i class="fas fa-piggy-bank"></i>
             </a>
         </div>
@@ -115,7 +132,7 @@
 
 <script>
     // Firebase configuration
-    const firebaseConfig = {
+const firebaseConfig = {
         apiKey: "AIzaSyCdzQP6n7gw8T82h2Qg-cLfnLbEqJ4WONg",
         authDomain: "caps-62ee2.firebaseapp.com",
         databaseURL: "https://caps-62ee2-default-rtdb.firebaseio.com",
@@ -125,33 +142,58 @@
         appId: "1:407248916382:web:104a66db2e652789e2d08f",
         measurementId: "G-2Y9GYDHFVM"
     };
-
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
+    let loanAmount = 0;
+    let savingsAmount = 0;
+
     // Check if user is logged in and load their data
     firebase.auth().onAuthStateChanged(function(user) {
         if (user) {
-            loadUserData(user.uid);
+            loadBalanceData(user.uid);
         } else {
             window.location.href = "login.html"; 
         }
     });
 
-    // Load user data from Firebase Realtime Database
-    function loadUserData(userId) {
+    // Load balance data from Firebase
+    function loadBalanceData(userId) {
         db.ref('users/' + userId).once('value').then(snapshot => {
             const userData = snapshot.val();
             if (userData) {
-                $('#loan-amount-display').text('₱ ' + userData.loanAmount + '.00');
+                loanAmount = userData.loanAmount || 0;
+                savingsAmount = userData.savingsAmount || 0;
+                showLoanBalance(); // Show loan balance by default
             } else {
-                $('#loan-amount-display').text('No loan data found.');
+                $('#balance-amount-display').text('No data found.');
             }
         }).catch(error => {
-            $('#loan-amount-display').text('Error loading data');
+            $('#balance-amount-display').text('Error loading data');
         });
+    }
+
+    // Function to display loan balance
+    function showLoanBalance() {
+        $('#balance-type').text('Loan Balance');
+        $('#balance-amount-display').text('₱ ' + loanAmount + '.00');
+        setActiveButton('loan-btn');
+    }
+
+    // Function to display savings balance
+    function showSavingsBalance() {
+        $('#balance-type').text('Savings Balance');
+        $('#balance-amount-display').text('₱ ' + savingsAmount + '.00');
+        setActiveButton('savings-btn');
+    }
+
+    // Helper function to set active button style
+    function setActiveButton(activeButtonId) {
+        $('#loan-btn').removeClass('btn-success').addClass('btn-light');
+        $('#savings-btn').removeClass('btn-success').addClass('btn-light');
+        $('#' + activeButtonId).removeClass('btn-light').addClass('btn-success');
     }
 
     // Logout function with confirmation prompt

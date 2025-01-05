@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Savings History</title>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+</head>
+<style>
+/* Green theme styles */
+body {
+    background-color: #e8f5e9;
+}
+.btn-link {
+    color: #28a745;
+}
+h4 {
+    color: #28a745;
+}
+.savings-entry {
+    background-color: #f1f8e9;
+    border: 1px solid #c8e6c9;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+</style>
+<body>
+
+<button class="btn btn-link" onclick="window.location.href='index.html'">
+    <i class="fas fa-arrow-left"></i>
+</button>
+
+<!-- Savings History Section -->
+<div class="container mt-4">
+    <div id="savings-history" style="margin-top: 20px;">
+        <h4>Savings History</h4>
+        <div id="savings-history-body">
+            <!-- Savings records will be dynamically inserted here -->
+        </div>
+    </div>
+</div>
+
+<!-- Include SweetAlert2 for notifications -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Firebase configuration
+const firebaseConfig = {
+        apiKey: "AIzaSyCdzQP6n7gw8T82h2Qg-cLfnLbEqJ4WONg",
+        authDomain: "caps-62ee2.firebaseapp.com",
+        databaseURL: "https://caps-62ee2-default-rtdb.firebaseio.com",
+        projectId: "caps-62ee2",
+        storageBucket: "caps-62ee2.appspot.com",
+        messagingSenderId: "407248916382",
+        appId: "1:407248916382:web:104a66db2e652789e2d08f",
+        measurementId: "G-2Y9GYDHFVM"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Check if the user is logged in, and if not, redirect to login
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+            window.location.href = 'login.html';
+        } else {
+            fetchSavingsHistory(user.uid);
+        }
+    });
+
+    // Function to fetch and display the savings history
+    function fetchSavingsHistory(userId) {
+        const savingsHistoryRef = db.ref(`users/${userId}/savingsHistory`);
+
+        savingsHistoryRef.once('value')
+            .then((snapshot) => {
+                const savingsHistoryBody = document.getElementById('savings-history-body');
+                savingsHistoryBody.innerHTML = ''; // Clear existing entries
+
+                if (snapshot.exists()) {
+                    const savingsArray = snapshot.val();
+                    let index = 1;
+
+                    for (const savingsKey in savingsArray) {
+                        if (savingsArray.hasOwnProperty(savingsKey)) {
+                            const savings = savingsArray[savingsKey];
+                            const savingsEntry = document.createElement('div');
+                            savingsEntry.classList.add('savings-entry');
+                            savingsEntry.innerHTML = `
+                                <strong>Entry #${index}</strong><br>
+                                <strong>Date:</strong> ${savings.date}<br>
+                                <strong>Amount:</strong> ₱${savings.amount}<br>
+                                <strong>Transaction ID:</strong> ${savings.savingsPaymentId}<br>
+                            `;
+                            savingsHistoryBody.appendChild(savingsEntry);
+                            index++;
+                        }
+                    }
+                } else {
+                    const noHistory = document.createElement('div');
+                    noHistory.classList.add('text-center', 'text-muted');
+                    noHistory.innerHTML = "No savings history available.";
+                    savingsHistoryBody.appendChild(noHistory);
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching savings history: ", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to fetch savings history. Please try again later.'
+                });
+            });
+    }
+</script>
+
+<!-- Bootstrap JS (Optional) -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

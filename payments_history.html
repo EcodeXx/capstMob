@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
-    <title>Loan History</title>
+    <title>Payment History</title>
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
@@ -24,6 +24,13 @@ body {
 h4 {
     color: #28a745;
 }
+.payment-entry {
+    background-color: #f1f8e9;
+    border: 1px solid #c8e6c9;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
 </style>
 <body>
 
@@ -31,22 +38,13 @@ h4 {
     <i class="fas fa-arrow-left"></i>
 </button>
 
-<!-- Payment History Table -->
+<!-- Payment History Section -->
 <div class="container mt-4">
     <div id="payment-history" style="margin-top: 20px;">
         <h4>Payment History</h4>
-        <table class="table table-bordered">
-            <thead class="thead-light">
-                <tr>
-                    <th>No.</th>
-                    <th>Date</th>
-                    <th>Payment Amount</th>
-                </tr>
-            </thead>
-            <tbody id="payment-history-body">
-                <!-- Payment records will be dynamically inserted here -->
-            </tbody>
-        </table>
+        <div id="payment-history-body">
+            <!-- Payment records will be dynamically inserted here -->
+        </div>
     </div>
 </div>
 
@@ -80,13 +78,13 @@ h4 {
         }
     });
 
-    // Function to fetch and display the payment history
+    // Function to fetch and display the payment history in plain text format
     function fetchPaymentHistory(userId) {
         const paymentHistoryRef = db.ref(`users/${userId}/payments`);
 
         paymentHistoryRef.once('value', (snapshot) => {
             const paymentHistoryBody = document.getElementById('payment-history-body');
-            paymentHistoryBody.innerHTML = ''; // Clear existing rows
+            paymentHistoryBody.innerHTML = ''; // Clear existing entries
 
             if (snapshot.exists()) {
                 const paymentsArray = snapshot.val();
@@ -95,20 +93,22 @@ h4 {
                 for (const paymentKey in paymentsArray) {
                     if (paymentsArray.hasOwnProperty(paymentKey)) {
                         const payment = paymentsArray[paymentKey];
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${index}</td>
-                            <td>${payment.date}</td>
-                            <td>₱ ${payment.amount}</td>
+                        const paymentEntry = document.createElement('div');
+                        paymentEntry.classList.add('payment-entry');
+                        paymentEntry.innerHTML = `
+                            <strong>Payment #${index}</strong><br>
+                            <strong>Date:</strong> ${payment.date}<br>
+                            <strong>Payment Amount:</strong> ₱ ${payment.amount}<br>
                         `;
-                        paymentHistoryBody.appendChild(row);
+                        paymentHistoryBody.appendChild(paymentEntry);
                         index++;
                     }
                 }
             } else {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="3" class="text-center">No payment history available.</td>`;
-                paymentHistoryBody.appendChild(row);
+                const noHistory = document.createElement('div');
+                noHistory.classList.add('text-center', 'text-muted');
+                noHistory.innerHTML = "No payment history available.";
+                paymentHistoryBody.appendChild(noHistory);
             }
         }).catch(error => {
             console.error("Error fetching payment history: ", error);
@@ -120,7 +120,6 @@ h4 {
         });
     }
 </script>
-
 
 <!-- Bootstrap JS (Optional) -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
