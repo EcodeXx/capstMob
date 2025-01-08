@@ -15,6 +15,10 @@
     <!-- SweetAlert Library -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+ /* Green theme styles */
+body {
+    background-color: #e8f5e9;
+}
         .balance-display {
             background-color: #28a745;
             color: white;
@@ -41,7 +45,7 @@
             flex-wrap: wrap;
             gap: 20px;
             justify-content: center;
-            margin-top: 20px;
+            margin-top: 50px;
         }
         .icon-box {
             width: 100px;
@@ -49,7 +53,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #e8f5e9;
+            background-color: #fff;
             color: #28a745;
             border-radius: 10px;
             font-size: 2rem;
@@ -81,9 +85,14 @@
         .container {
             padding-bottom: 80px;
         }
+        .icontext {
+          margin-top: 10px;
+          font-size: 10px;
+        }
     </style>
 </head>
 <body>
+<div class="background-image"></div>
 
 <div class="container">
     <!-- Balance Display with Toggle Buttons -->
@@ -100,23 +109,23 @@
     <!-- Icon Grid Section -->
     <div class="icon-grid">
         <div class="icon-box">
-            <a href="#">
-                <i class="fas fa-chart-line"></i>
+            <a href="Borrow.html">
+<i class="fas fa-hand-holding-usd"><p class="icontext">proof</p></i>
             </a>
         </div>
         <div class="icon-box">
             <a href="savings.html">
-                <i class="fas fa-piggy-bank"></i>
+                <i class="fas fa-piggy-bank"><p class="icontext">savings</p></i>
             </a>
         </div>
         <div class="icon-box">
             <a href="loan_history.html">
-                <i class="fas fa-money-check-alt"></i>
+                <i class="fas fa-money-check-alt"><p class="icontext">Loan</p></i>
             </a>
         </div>
         <div class="icon-box">
             <a href="payments_history.html">
-                <i class="fas fa-coins"></i>
+                <i class="fas fa-coins"><p class="icontext">Payment</p></i>
             </a>
         </div>
     </div>
